@@ -16,3 +16,11 @@ $ source env/bin/activate
 $ pip install -r requirements.txt
 
 ```
+
+## Contribuir
+
+Cada vez que se instale una dependencia ejecutar el siguiente comando para actualizar el fichero `requirements.txt`:
+
+```bash
+$ pip freeze > requirements.txt
+```
