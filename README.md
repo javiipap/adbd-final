@@ -24,3 +24,25 @@ Cada vez que se instale una dependencia ejecutar el siguiente comando para actua
 ```bash
 $ pip freeze > requirements.txt
 ```
+
+## Estructura de respuesta
+
+**_Correcto_**
+
+```json
+{
+  "count": number,
+  "next_page": string | null,
+  "values": any[]
+}
+```
+
+**_Error_**
+
+```json
+{
+  "code": number,
+  "name": string,
+  "message": string
+}
+```
