@@ -14,44 +14,41 @@ DROP TYPE IF EXISTS bonification_type;
 
 CREATE TABLE airline (
   id SERIAL PRIMARY KEY,
+  icao VARCHAR NOT NULL,
   name VARCHAR NOT NULL
 );
 
 CREATE TABLE airports (
   id SERIAL PRIMARY KEY,
+  iata VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   city VARCHAR NOT NULL,
   country VARCHAR NOT NULL
 );
 
 CREATE TABLE luggage_fees (
-  id SERIAL,
   weight INTEGER NOT NULL,
-  fee INTEGER NOT NULL,
-  airline_id INTEGER NOT NULL REFERENCES airline(id),
-  PRIMARY KEY(weight, airline_id),
-  FOREIGN KEY(airline_id)
+  fee DECIMAL(2, 7) NOT NULL,
+  airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
+  PRIMARY KEY(weight, airline_id)
 );
 
 CREATE TABLE seat_luxury_fees (
-  id SERIAL,
   luxury VARCHAR NOT NULL,
-  fee INTEGER NOT NULL,
-  airline_id INTEGER NOT NULL REFERENCES airline(id),
-  PRIMARY KEY(luxury, airline_id),
-  FOREIGN KEY(airline_id)
+  fee DECIMAL(2, 7) NOT NULL,
+  airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
+  PRIMARY KEY(luxury, airline_id)
 );
 
 CREATE TABLE flights (
-  id SERIAL,
-  airline_id INTEGER NOT NULL REFERENCES airline(id),
-  origin_id INTEGER NOT NULL REFERENCES airports(id),
-  destination_id INTEGER NOT NULL REFERENCES airports(id),
+  id VARCHAR NOT NULL DEFAULT (gen_random_uuid()) PRIMARY KEY,
+  flight_number INTEGER NOT NULL,
+  airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
+  origin_id INTEGER NOT NULL REFERENCES airports(id) ON DELETE CASCADE,
+  destination_id INTEGER NOT NULL REFERENCES airports(id) ON DELETE CASCADE,
   duration INTEGER NOT NULL,
   departure_date timestamp NOT NULL,
-  arrival_date timestamp NOT NULL,
-  PRIMARY KEY(id, airline_id),
-  FOREIGN KEY(airline_id)
+  arrival_date timestamp NOT NULL
 );
 
 CREATE TYPE bonification_type AS ENUM ('percent', 'fixed');
@@ -65,57 +62,54 @@ CREATE TABLE bonifications (
 );
 
 CREATE TABLE clients (
-  id SERIAL,
-  dni VARCHAR NOT NULL UNIQUE,
+  dni VARCHAR NOT NULL PRIMARY KEY,
   gender VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   surnames VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
-  phone VARCHAR NOT NULL,
-  PRIMARY KEY(id, dni)
+  phone VARCHAR NOT NULL
 );
 
 CREATE TABLE clients_bonifications (
-  id SERIAL,
-  client_id INTEGER REFERENCES clients(id),
-  bonification_id INTEGER REFERENCES bonifications(id),
+  client_id VARCHAR NOT NULL REFERENCES clients(dni) ON DELETE CASCADE,
+  bonification_id INTEGER NOT NULL REFERENCES bonifications(id) ON DELETE CASCADE,
   PRIMARY KEY (client_id, bonification_id)
 );
 
 CREATE TABLE seats (
+  id SERIAL UNIQUE,
   row INTEGER NOT NULL,
   col VARCHAR NOT NULL,
-  price INTEGER NOT NULL,
-  flight_id INTEGER NOT NULL REFERENCES flights(id),
-  client_id INTEGER REFERENCES clients(id),
-  luxury_id INTEGER NOT NULL REFERENCES seat_luxury_fees(id),
-  airline_id INTEGER NOT NULL REFERENCES seat_luxury_fees(airline_id),
+  price DECIMAL(7, 2) NOT NULL,
+  flight_id VARCHAR NOT NULL REFERENCES flights(id) ON DELETE CASCADE,
+  client_id VARCHAR REFERENCES clients(dni) ON DELETE SET NULL,
+  luxury_type VARCHAR,
+  airline_id INTEGER NOT NULL,
   client_info jsonb NOT NULL,
-  PRIMARY KEY (row, col, flight_id)
+  PRIMARY KEY (row, col, flight_id),
+  FOREIGN KEY (luxury_type, airline_id) REFERENCES seat_luxury_fees(luxury, airline_id) ON DELETE SET NULL
 );
 
 CREATE TABLE bookings (
-  id SERIAL PRIMARY KEY,
-  client_id INTEGER NOT NULL REFERENCES clients(id),
-  seats_id INTEGER[] NOT NULL,
-  luggage_id INTEGER[] NOT NULL,
-  price INTEGER NOT NULL,
+  id SERIAL UNIQUE,
+  client_id VARCHAR NOT NULL REFERENCES clients(dni) ON DELETE CASCADE,
+  seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   date VARCHAR NOT NULL,
-  payment_status VARCHAR NOT NULL
+  payment_status VARCHAR NOT NULL,
+  PRIMARY KEY (id, client_id, seat_id)
 );
 
 CREATE TABLE cargo (
   id SERIAL,
-  flight_id INTEGER NOT NULL REFERENCES flights(id),
-  booking_id INTEGER NOT NULL REFERENCES bookings(id),
-  airline_id INTEGER NOT NULL REFERENCES flights(airline_id),
+  flight_id VARCHAR NOT NULL REFERENCES flights(id) ON DELETE CASCADE,
+  seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   weight INTEGER,
   price DECIMAL(7,2),
-  PRIMARY KEY (id, flight_id, airline_id, booking_id)
+  PRIMARY KEY (id, flight_id)
 );
 
 CREATE TABLE cancelations (
   id SERIAL PRIMARY KEY,
-  booking_id INTEGER NOT NULL REFERENCES bookings(id),
+  booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   date VARCHAR NOT NULL
 );
