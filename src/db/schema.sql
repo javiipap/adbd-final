@@ -81,14 +81,14 @@ CREATE TABLE seats (
   row INTEGER NOT NULL,
   col VARCHAR NOT NULL,
   price DECIMAL(7, 2) NOT NULL,
-  flight_id INTEGER NOT NULL,
+  flight_number INTEGER NOT NULL,
   client_id VARCHAR REFERENCES clients(dni) ON DELETE SET NULL,
   luxury_type VARCHAR,
   airline_id INTEGER NOT NULL,
   client_info jsonb NOT NULL,
-  PRIMARY KEY (row, col, flight_id),
+  PRIMARY KEY (row, col, flight_number),
   FOREIGN KEY (luxury_type, airline_id) REFERENCES seat_luxury_fees(luxury, airline_id) ON DELETE SET NULL,
-  FOREIGN KEY (flight_id, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
+  FOREIGN KEY (flight_number, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
 );
 
 CREATE TABLE bookings (
@@ -102,13 +102,13 @@ CREATE TABLE bookings (
 
 CREATE TABLE cargo (
   id SERIAL,
-  flight_id INTEGER NOT NULL,
+  flight_number INTEGER NOT NULL,
   airline_id INTEGER NOT NULL,
   seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   weight INTEGER,
   price DECIMAL(7,2),
-  PRIMARY KEY (id, flight_id),
-  FOREIGN KEY (flight_id, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
+  PRIMARY KEY (id, flight_number),
+  FOREIGN KEY (flight_number, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
 );
 
 CREATE TABLE cancelations (
