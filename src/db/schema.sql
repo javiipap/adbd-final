@@ -25,28 +25,33 @@ CREATE TABLE airports (
 );
 
 CREATE TABLE luggage_fees (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   weight INTEGER NOT NULL,
-  price INTEGER NOT NULL,
-  airline_id INTEGER NOT NULL REFERENCES airline(id)
+  fee INTEGER NOT NULL,
+  airline_id INTEGER NOT NULL REFERENCES airline(id),
+  PRIMARY KEY(weight, airline_id),
+  FOREIGN KEY(airline_id)
 );
 
 CREATE TABLE seat_luxury_fees (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   luxury VARCHAR NOT NULL,
-  price INTEGER NOT NULL,
-  airline_id INTEGER NOT NULL REFERENCES airline(id)
+  fee INTEGER NOT NULL,
+  airline_id INTEGER NOT NULL REFERENCES airline(id),
+  PRIMARY KEY(luxury, airline_id),
+  FOREIGN KEY(airline_id)
 );
 
 CREATE TABLE flights (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   airline_id INTEGER NOT NULL REFERENCES airline(id),
-  sku VARCHAR NOT NULL UNIQUE,
   origin_id INTEGER NOT NULL REFERENCES airports(id),
   destination_id INTEGER NOT NULL REFERENCES airports(id),
   duration INTEGER NOT NULL,
   departure_date timestamp NOT NULL,
-  arrival_date timestamp NOT NULL
+  arrival_date timestamp NOT NULL,
+  PRIMARY KEY(id, airline_id),
+  FOREIGN KEY(airline_id)
 );
 
 CREATE TYPE bonification_type AS ENUM ('percent', 'fixed');
@@ -60,13 +65,14 @@ CREATE TABLE bonifications (
 );
 
 CREATE TABLE clients (
-  id SERIAL PRIMARY KEY,
+  id SERIAL,
   dni VARCHAR NOT NULL UNIQUE,
   gender VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   surnames VARCHAR NOT NULL,
   email VARCHAR NOT NULL,
-  phone VARCHAR NOT NULL
+  phone VARCHAR NOT NULL,
+  PRIMARY KEY(id, dni)
 );
 
 CREATE TABLE clients_bonifications (
@@ -83,6 +89,7 @@ CREATE TABLE seats (
   flight_id INTEGER NOT NULL REFERENCES flights(id),
   client_id INTEGER REFERENCES clients(id),
   luxury_id INTEGER NOT NULL REFERENCES seat_luxury_fees(id),
+  airline_id INTEGER NOT NULL REFERENCES seat_luxury_fees(airline_id),
   client_info jsonb NOT NULL,
   PRIMARY KEY (row, col, flight_id)
 );
@@ -101,7 +108,10 @@ CREATE TABLE cargo (
   id SERIAL,
   flight_id INTEGER NOT NULL REFERENCES flights(id),
   booking_id INTEGER NOT NULL REFERENCES bookings(id),
-  PRIMARY KEY (id, flight_id, booking_id)
+  airline_id INTEGER NOT NULL REFERENCES flights(airline_id),
+  weight INTEGER,
+  price DECIMAL(7,2),
+  PRIMARY KEY (id, flight_id, airline_id, booking_id)
 );
 
 CREATE TABLE cancelations (
