@@ -4,7 +4,7 @@ from psycopg2 import extras
 from flask import g
 
 
-def get_cursor():
+def get_db():
     if 'db' not in g:
         g.db = psycopg2.connect(
             dbname=os.environ['DB_NAME'],
@@ -13,8 +13,17 @@ def get_cursor():
             host=os.environ['DB_HOST'],
             port=os.environ['DB_PORT'],
         )
-        g.db.autocommit = True
-        g.cursor = g.db.cursor(cursor_factory=extras.RealDictCursor)
+
+    return g.db
+
+
+def get_cursor():
+    db = get_db()
+    db.autocommit = True
+
+    if 'cursor' not in g:
+        g.cursor = db.cursor(cursor_factory=extras.RealDictCursor)
+
     return g.cursor
 
 

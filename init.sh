@@ -7,7 +7,9 @@ if [ ! -d "env" ]; then
 fi
 
 if [ "x$(which python)" != "x$VIRTUAL_ENV/bin/python" ]; then
+  echo "You are not in the virtual environment. Run 'source env/bin/activate' to activate it."
   . env/bin/activate
+  echo "Virtual environment activated only for script execution."
 fi
 
 python main.py
