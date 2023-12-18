@@ -2,9 +2,9 @@ DROP TABLE IF EXISTS cancelations;
 DROP TABLE IF EXISTS cargo;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS seats;
-DROP TABLE IF EXISTS clients_bonifications;
+DROP TABLE IF EXISTS users_bonifications;
 DROP TABLE IF EXISTS bonifications;
-DROP TABLE IF EXISTS clients;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS flights;
 DROP TABLE IF EXISTS seat_luxury_fees;
 DROP TABLE IF EXISTS luggage_fees;
@@ -36,6 +36,7 @@ CREATE TABLE luggage_fees (
 CREATE TABLE seat_luxury_fees (
   luxury VARCHAR NOT NULL,
   fee DECIMAL(7, 2) NOT NULL,
+  description VARCHAR NOT NULL,
   airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
   PRIMARY KEY(luxury, airline_id)
 );
@@ -61,7 +62,7 @@ CREATE TABLE bonifications (
   type bonification_type NOT NULL
 );
 
-CREATE TABLE clients (
+CREATE TABLE users (
   dni VARCHAR NOT NULL PRIMARY KEY,
   gender VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
@@ -70,10 +71,10 @@ CREATE TABLE clients (
   phone VARCHAR NOT NULL
 );
 
-CREATE TABLE clients_bonifications (
-  client_id VARCHAR NOT NULL REFERENCES clients(dni) ON DELETE CASCADE,
+CREATE TABLE users_bonifications (
+  user_id VARCHAR NOT NULL REFERENCES users(dni) ON DELETE CASCADE,
   bonification_id INTEGER NOT NULL REFERENCES bonifications(id) ON DELETE CASCADE,
-  PRIMARY KEY (client_id, bonification_id)
+  PRIMARY KEY (user_id, bonification_id)
 );
 
 CREATE TABLE seats (
@@ -82,10 +83,10 @@ CREATE TABLE seats (
   col VARCHAR NOT NULL,
   price DECIMAL(7, 2) NOT NULL,
   flight_number INTEGER NOT NULL,
-  client_id VARCHAR REFERENCES clients(dni) ON DELETE SET NULL,
+  user_id VARCHAR REFERENCES users(dni) ON DELETE SET NULL,
   luxury_type VARCHAR,
   airline_id INTEGER NOT NULL,
-  client_info jsonb NOT NULL,
+  user_info jsonb NOT NULL,
   PRIMARY KEY (row, col, flight_number),
   FOREIGN KEY (luxury_type, airline_id) REFERENCES seat_luxury_fees(luxury, airline_id) ON DELETE SET NULL,
   FOREIGN KEY (flight_number, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
@@ -93,11 +94,11 @@ CREATE TABLE seats (
 
 CREATE TABLE bookings (
   id SERIAL UNIQUE,
-  client_id VARCHAR NOT NULL REFERENCES clients(dni) ON DELETE CASCADE,
+  user_id VARCHAR NOT NULL REFERENCES users(dni) ON DELETE CASCADE,
   seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   date VARCHAR NOT NULL,
   payment_status VARCHAR NOT NULL,
-  PRIMARY KEY (id, client_id, seat_id)
+  PRIMARY KEY (id, user_id, seat_id)
 );
 
 CREATE TABLE cargo (
