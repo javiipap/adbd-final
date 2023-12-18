@@ -2,10 +2,10 @@ from flask import Blueprint, jsonify
 
 from ..db import get_cursor
 
-clients = Blueprint('clients', __name__)
+users = Blueprint('users', __name__, url_prefix='/users')
 
 
-@clients.route('')
+@users.route('')
 def hello():
     cursor = get_cursor()
     cursor.execute('SELECT * FROM prueba')

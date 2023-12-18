@@ -1,17 +1,22 @@
 import json
-from flask import Flask
+from flask import Flask, Blueprint
 from werkzeug.exceptions import HTTPException
 
-from .routes import clients, flights, hotels
+from .routes import users, airports, bonifications, airlines
 from .db import close_db
 
 app = Flask(__name__)
 
 API_BASE = '/api'
 
-app.register_blueprint(clients, url_prefix=f'{API_BASE}/clients')
-app.register_blueprint(flights, url_prefix=f'{API_BASE}/flights')
-app.register_blueprint(hotels, url_prefix=f'{API_BASE}/hotels')
+prefixed = Blueprint('prefixed', __name__, url_prefix=API_BASE)
+
+prefixed.register_blueprint(users)
+prefixed.register_blueprint(airports)
+prefixed.register_blueprint(bonifications)
+prefixed.register_blueprint(airlines)
+
+app.register_blueprint(prefixed)
 
 app.teardown_appcontext(close_db)
 
