@@ -28,14 +28,14 @@ CREATE TABLE airports (
 
 CREATE TABLE luggage_fees (
   weight INTEGER NOT NULL,
-  fee DECIMAL(2, 7) NOT NULL,
+  fee DECIMAL(7, 2) NOT NULL,
   airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
   PRIMARY KEY(weight, airline_id)
 );
 
 CREATE TABLE seat_luxury_fees (
   luxury VARCHAR NOT NULL,
-  fee DECIMAL(2, 7) NOT NULL,
+  fee DECIMAL(7, 2) NOT NULL,
   airline_id INTEGER NOT NULL REFERENCES airline(id) ON DELETE CASCADE,
   PRIMARY KEY(luxury, airline_id)
 );

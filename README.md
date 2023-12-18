@@ -2,7 +2,7 @@
 
 Este proyecto ha sido desarrollado por:
 
-- Alicia G. Cruz Pérez [alu0101420868@ull.edu.es](mailto:alu0101420868@ull.edu.es)
+- Alicia Guadalupe Cruz Pérez [alu0101420868@ull.edu.es](mailto:alu0101420868@ull.edu.es)
 - Iván Texenery Díaz García [alu0101429762@ull.edu.es](mailto:alu0101429762@ull.edu.es)
 - Javier Padilla Pío [alu0101410463@ull.edu.es](mailto:alu0101410463@ull.edu.es)
 
