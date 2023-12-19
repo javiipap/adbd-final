@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, abort
 from marshmallow import ValidationError
 from ..db import get_db, get_cursor
-from ..models import BookingSchema
+from ..validators import BookingSchema
 from collections import defaultdict
 
 bookings = Blueprint('bookings', __name__, url_prefix='/bookings')
