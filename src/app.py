@@ -2,7 +2,7 @@ import json
 from flask import Flask, Blueprint
 from werkzeug.exceptions import HTTPException
 
-from .routes import users, airports, bonifications, airlines
+from .routes import users, airports, bonifications, airlines, bookings
 from .db import close_db
 
 app = Flask(__name__)
@@ -15,6 +15,7 @@ prefixed.register_blueprint(users)
 prefixed.register_blueprint(airports)
 prefixed.register_blueprint(bonifications)
 prefixed.register_blueprint(airlines)
+prefixed.register_blueprint(bookings)
 
 app.register_blueprint(prefixed)
 
