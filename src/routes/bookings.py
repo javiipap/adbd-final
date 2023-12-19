@@ -30,7 +30,7 @@ def hello():
             'FROM bookings b INNER JOIN seats s '
             'ON b.seat_id = s.id '
             'INNER JOIN flights f '
-            'ON s.flight_id = f.id '
+            'ON s.flight_number = f.flight_number AND s.airline_id = f.airline_id '
             'INNER JOIN cargo c '
             'ON c.seat_id = s.id '
             'GROUP BY b.id, f.id, s.id, s.col, s.row, s.id, b.date, f.departure_date, f.arrival_date, s.price, s.user_info')
@@ -81,6 +81,13 @@ def hello():
         flight_id = flight.get('flight_id')
         seats = flight.get('seats')
 
+        cursor.execute(
+            'SELECT flight_number, airline_id FROM flights WHERE id = %s', [flight_id])
+        flight_info = cursor.fetchone()
+        if not flight_info:
+            abort(400, 'Invalid flight id')
+        flight_number, airline_id = flight_info
+
         booking_id = None
 
         for seat in seats:
@@ -90,8 +97,8 @@ def hello():
             user_info = seat.get('user_info', {})
 
             # Check if seat exists and retrieve id
-            cursor.execute('SELECT id from seats WHERE col = %s AND row = %s AND flight_id = %s',
-                           [col, row, flight_id])
+            cursor.execute('SELECT id from seats WHERE col = %s AND row = %s AND flight_number = %s AND airline_id = %s',
+                           [col, row, flight_number, airline_id])
             seat_id = cursor.fetchone()
 
             # Check if seat is already booked
@@ -151,10 +158,10 @@ def hello():
             inserted_luggage = []
             for l in luggage:
                 cursor.execute(
-                    'INSERT INTO cargo (seat_id, flight_id, weight) '
-                    'VALUES (%s, %s, %s) '
+                    'INSERT INTO cargo (seat_id, flight_number, airline_id, weight) '
+                    'VALUES (%s, %s, %s, %s) '
                     'RETURNING id',
-                    [seat_id, flight_id, l.get('weight')])
+                    [seat_id, flight_number, airline_id, l.get('weight')])
                 luggage_id = cursor.fetchone()
                 inserted_luggage.append(
                     {'id': luggage_id[0], 'weight': l.get('weight')})

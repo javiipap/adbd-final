@@ -37,11 +37,11 @@ CREATE TABLE luggage_fees (
 
 CREATE TABLE seat_luxury_fees (
   id SERIAL NOT NULL UNIQUE,
-  luxury VARCHAR NOT NULL,
+  luxury_type VARCHAR NOT NULL,
   fee DECIMAL(7, 2) NOT NULL,
   description VARCHAR NOT NULL,
   airline_id INTEGER NOT NULL REFERENCES airlines(id) ON DELETE CASCADE,
-  PRIMARY KEY(luxury, airline_id)
+  PRIMARY KEY(luxury_type, airline_id)
 );
 
 CREATE TABLE flights (
@@ -54,6 +54,7 @@ CREATE TABLE flights (
   duration INTEGER NOT NULL,
   departure_date timestamp NOT NULL,
   arrival_date timestamp NOT NULL,
+  max_cargo_load INTEGER NOT NULL,
   PRIMARY KEY (flight_number, airline_id)
 );
 
@@ -87,11 +88,14 @@ CREATE TABLE seats (
   row INTEGER NOT NULL,
   col VARCHAR NOT NULL,
   price DECIMAL(7, 2) NOT NULL,
-  flight_id VARCHAR NOT NULL REFERENCES flights(id) ON DELETE CASCADE,
+  flight_number INTEGER NOT NULL,
+  airline_id INTEGER NOT NULL,
   user_id VARCHAR REFERENCES users(dni) ON DELETE SET NULL,
-  luxury_id INTEGER REFERENCES seat_luxury_fees(id) ON DELETE SET NULL,
+  luxury_type VARCHAR,
   user_info jsonb NOT NULL DEFAULT '{}'::jsonb,
-  PRIMARY KEY (row, col, flight_id)
+  PRIMARY KEY (row, col, flight_number, airline_id),
+  FOREIGN KEY (flight_number, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE,
+  FOREIGN KEY (luxury_type, airline_id) REFERENCES seat_luxury_fees(luxury_type, airline_id) ON DELETE SET NULL
 );
 
 CREATE TYPE payment_status AS ENUM ('pending', 'fulfilled', 'canceled');
@@ -107,10 +111,12 @@ CREATE TABLE bookings (
 
 CREATE TABLE cargo (
   id SERIAL PRIMARY KEY,
-  flight_id VARCHAR NOT NULL REFERENCES flights(id) ON DELETE CASCADE,
+  flight_number INTEGER NOT NULL,
+  airline_id INTEGER NOT NULL,
   seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   weight INTEGER,
-  price DECIMAL(7,2)
+  price DECIMAL(7,2),
+  FOREIGN KEY (flight_number, airline_id) REFERENCES flights(flight_number, airline_id) ON DELETE CASCADE
 );
 
 CREATE TABLE cancelations (

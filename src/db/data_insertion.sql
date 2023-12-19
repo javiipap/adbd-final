@@ -1,16 +1,3 @@
-DELETE FROM airlines;
-DELETE FROM airports;
-DELETE FROM luggage_fees;
-DELETE FROM seat_luxury_fees;
-DELETE FROM flights;
-DELETE FROM bonifications;
-DELETE FROM users;
-DELETE FROM users_bonifications;
-DELETE FROM seats;
-DELETE FROM bookings;
-DELETE FROM cargo;
-DELETE FROM cancelations;
-
 -- Inserción de datos en la tabla airlines
 INSERT INTO airlines (icao, name) VALUES
 ('ICAO001', 'Airline One'),
@@ -33,18 +20,18 @@ INSERT INTO luggage_fees (weight, fee, airline_id) VALUES
 (35, 90.00, 4);
 
 -- Inserción de datos en la tabla seat_luxury_fees
-INSERT INTO seat_luxury_fees (luxury, fee, description, airline_id) VALUES
+INSERT INTO seat_luxury_fees (luxury_type, fee, description, airline_id) VALUES
 ('FirstClass', 150.00, 'Luxurious first-class seating', 1),
 ('BusinessClass', 100.00, 'Comfortable business-class seating', 2),
 ('PremiumEconomy', 80.00, 'Spacious premium economy seating', 3),
 ('Economy', 50.00, 'Standard economy seating', 4);
 
 -- Inserción de datos en la tabla flights
-INSERT INTO flights (id, flight_number, base_price, airline_id, origin_id, destination_id, duration, departure_date, arrival_date) VALUES
-('FLIGHT001', 101, 100.0, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00'),
-('FLIGHT002', 202, 100.0, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00'),
-('FLIGHT003', 303, 100.0, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00'),
-('FLIGHT004', 404, 100.0, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00');
+INSERT INTO flights (flight_number, base_price, airline_id, origin_id, destination_id, duration, departure_date, arrival_date, max_cargo_load) VALUES
+(101, 200.00, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00', 500),
+(202, 250.00, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00', 600),
+(303, 180.00, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00', 450),
+(404, 220.00, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00', 550);
 
 -- Inserción de datos en la tabla bonifications
 INSERT INTO bonifications (name, description, value, type) VALUES
@@ -68,11 +55,11 @@ INSERT INTO users_bonifications (user_id, bonification_id) VALUES
 ('111111111D', 4);
 
 -- Inserción de datos en la tabla seats
-INSERT INTO seats (row, col, price, flight_id, user_id, luxury_id, user_info) VALUES
-(1, 'A', 100.00, 'ICAO001101', '123456789A', 1, '{"seat_preference": "window"}'),
-(2, 'B', 80.00, 'ICAO002202', '987654321B', 2, '{"seat_preference": "aisle"}'),
-(3, 'C', 60.00, 'ICAO003303', '555555555C', 3, '{"seat_preference": "middle"}'),
-(4, 'D', 40.00, 'ICAO004404', '111111111D', 4, '{"seat_preference": "window"}');
+INSERT INTO seats (row, col, price, flight_number, airline_id, user_id, luxury_type, user_info) VALUES
+(1, 'A', 100.00, 101, 1, '123456789A', 'FirstClass', '{"seat_preference": "window"}'),
+(2, 'B', 80.00, 202, 2, '987654321B', 'BusinessClass', '{"seat_preference": "aisle"}'),
+(3, 'C', 60.00, 303, 3, '555555555C', 'PremiumEconomy', '{"seat_preference": "middle"}'),
+(4, 'D', 40.00, 404, 4, '111111111D', 'Economy', '{"seat_preference": "window"}');
 
 -- Inserción de datos en la tabla bookings
 INSERT INTO bookings (user_id, seat_id, date, payment_status) VALUES
@@ -82,19 +69,13 @@ INSERT INTO bookings (user_id, seat_id, date, payment_status) VALUES
 ('111111111D', 4, '2023-01-04', 'fulfilled');
 
 -- Inserción de datos en la tabla cargo
-INSERT INTO cargo (flight_id, seat_id, weight, price) VALUES
-('ICAO001101', 1, 15, 30.00),
-('ICAO002202', 2, 20, 40.00),
-('ICAO003303', 3, 25, 50.00),
-('ICAO004404', 4, 30, 60.00);
+INSERT INTO cargo (flight_number, airline_id, seat_id, weight, price) VALUES
+(101, 1, 1, 15, 30.00),
+(202, 2, 2, 20, 40.00),
+(303, 3, 3, 25, 50.00),
+(404, 4, 4, 30, 60.00);
 
 -- Inserción de datos en la tabla cancelations
 INSERT INTO cancelations (booking_id, date) VALUES
 (1, '2023-01-02'),
 (3, '2023-01-04');
-
-INSERT INTO seats (row, col, price, flight_id, luxury_id, user_info) VALUES
-(2, 'E', 100.00, 'ICAO001101', 1, '{}'),
-(2, 'A', 80.00, 'ICAO002202', 2, '{}'),
-(2, 'C', 60.00, 'ICAO003303', 3, '{}'),
-(2, 'D', 40.00, 'ICAO004404', 4, '{}');
