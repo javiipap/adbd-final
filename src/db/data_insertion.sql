@@ -1,3 +1,16 @@
+DELETE FROM airlines;
+DELETE FROM airports;
+DELETE FROM luggage_fees;
+DELETE FROM seat_luxury_fees;
+DELETE FROM flights;
+DELETE FROM bonifications;
+DELETE FROM users;
+DELETE FROM users_bonifications;
+DELETE FROM seats;
+DELETE FROM bookings;
+DELETE FROM cargo;
+DELETE FROM cancelations;
+
 -- Inserción de datos en la tabla airlines
 INSERT INTO airlines (icao, name) VALUES
 ('ICAO001', 'Airline One'),
@@ -27,11 +40,11 @@ INSERT INTO seat_luxury_fees (luxury, fee, description, airline_id) VALUES
 ('Economy', 50.00, 'Standard economy seating', 4);
 
 -- Inserción de datos en la tabla flights
-INSERT INTO flights (id, flight_number, airline_id, origin_id, destination_id, duration, departure_date, arrival_date) VALUES
-('FLIGHT001', 101, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00'),
-('FLIGHT002', 202, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00'),
-('FLIGHT003', 303, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00'),
-('FLIGHT004', 404, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00');
+INSERT INTO flights (id, flight_number, base_price, airline_id, origin_id, destination_id, duration, departure_date, arrival_date) VALUES
+('FLIGHT001', 101, 100.0, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00'),
+('FLIGHT002', 202, 100.0, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00'),
+('FLIGHT003', 303, 100.0, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00'),
+('FLIGHT004', 404, 100.0, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00');
 
 -- Inserción de datos en la tabla bonifications
 INSERT INTO bonifications (name, description, value, type) VALUES
@@ -79,3 +92,9 @@ INSERT INTO cargo (flight_id, seat_id, weight, price) VALUES
 INSERT INTO cancelations (booking_id, date) VALUES
 (1, '2023-01-02'),
 (3, '2023-01-04');
+
+INSERT INTO seats (row, col, price, flight_id, luxury_id, user_info) VALUES
+(2, 'E', 100.00, 'ICAO001101', 1, '{}'),
+(2, 'A', 80.00, 'ICAO002202', 2, '{}'),
+(2, 'C', 60.00, 'ICAO003303', 3, '{}'),
+(2, 'D', 40.00, 'ICAO004404', 4, '{}');

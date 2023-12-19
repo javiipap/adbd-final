@@ -47,6 +47,7 @@ CREATE TABLE seat_luxury_fees (
 CREATE TABLE flights (
   id VARCHAR NOT NULL UNIQUE,
   flight_number INTEGER NOT NULL,
+  base_price DECIMAL(7,2) NOT NULL,
   airline_id INTEGER NOT NULL REFERENCES airlines(id) ON DELETE CASCADE,
   origin_id INTEGER NOT NULL REFERENCES airports(id) ON DELETE CASCADE,
   destination_id INTEGER NOT NULL REFERENCES airports(id) ON DELETE CASCADE,
@@ -89,7 +90,7 @@ CREATE TABLE seats (
   flight_id VARCHAR NOT NULL REFERENCES flights(id) ON DELETE CASCADE,
   user_id VARCHAR REFERENCES users(dni) ON DELETE SET NULL,
   luxury_id INTEGER REFERENCES seat_luxury_fees(id) ON DELETE SET NULL,
-  user_info jsonb NOT NULL,
+  user_info jsonb NOT NULL DEFAULT '{}'::jsonb,
   PRIMARY KEY (row, col, flight_id)
 );
 
@@ -100,7 +101,7 @@ CREATE TABLE bookings (
   user_id VARCHAR NOT NULL REFERENCES users(dni) ON DELETE CASCADE,
   seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  payment_status payment_status NOT NULL,
+  payment_status payment_status NOT NULL DEFAULT 'pending',
   PRIMARY KEY (id, user_id, seat_id)
 );
 
