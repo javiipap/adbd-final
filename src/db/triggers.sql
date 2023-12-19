@@ -27,14 +27,14 @@ DECLARE
 price DECIMAL(7, 2) := 0.0;
 BEGIN
   price := (SELECT base_price FROM flights WHERE (NEW.flight_number = flight_number AND NEW.airline_id = airline_id));
-  price := price + (SELECT fee FROM seat_luxury_fees WHERE (NEW.luxury_type = luxury AND NEW.airline_id = airline_id));
+  price := price + (SELECT fee FROM seat_luxury_fees WHERE (NEW.luxury_type = luxury_type AND NEW.airline_id = airline_id));
   NEW.price = price;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_seat_price
-BEFORE UPDATE ON seats
+BEFORE INSERT OR UPDATE ON seats
 FOR EACH ROW EXECUTE FUNCTION seat_price();
 
 CREATE OR REPLACE FUNCTION cargo_price()
@@ -49,5 +49,5 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_cargo_price
-BEFORE UPDATE ON cargo
+BEFORE INSERT OR UPDATE ON cargo
 FOR EACH ROW EXECUTE FUNCTION cargo_price();
