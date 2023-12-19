@@ -1,8 +1,12 @@
 #!/usr/bin/sh
 
 if [ ! -d "env" ]; then
+    echo "\033[1;34mNo environment found. Creating one...\033[0m"
     python3 -m venv env
-    source env/bin/activate
+    . env/bin/activate
+    echo "\033[0;34mVirtual environment created and activated for script execution.\033[0m"
+    echo "-------------------------------"
+    echo "\033[0;32mInstalling requirements...\033[0m"
     pip install -r requirements.txt
 fi
 
@@ -14,4 +18,5 @@ if [ "x$(which python)" != "x$VIRTUAL_ENV/bin/python" ]; then
   echo "-------------------------------\033[0m"
 fi
 
+echo "\033[0;34mStarting app...\033[0m"
 python main.py
