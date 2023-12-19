@@ -3,6 +3,7 @@ from marshmallow import ValidationError
 from ..db import get_db, get_cursor
 from ..validators import BookingSchema
 from collections import defaultdict
+import json
 
 bookings = Blueprint('bookings', __name__, url_prefix='/bookings')
 
@@ -75,9 +76,104 @@ def hello():
 
     booked = {flight.get('flight_id'): [] for flight in flights}
 
-    # Implementar
+    cursor = db.cursor()
+    for flight in flights:
+        flight_id = flight.get('flight_id')
+        seats = flight.get('seats')
 
-    return jsonify(booked)
+        booking_id = None
+
+        for seat in seats:
+            luggage = seat.get('luggage', [])
+            row = seat.get('row')
+            col = seat.get('col')
+            user_info = seat.get('user_info', {})
+
+            # Check if seat exists and retrieve id
+            cursor.execute('SELECT id from seats WHERE col = %s AND row = %s AND flight_id = %s',
+                           [col, row, flight_id])
+            seat_id = cursor.fetchone()
+
+            # Check if seat is already booked
+            cursor.execute('SELECT id FROM bookings WHERE seat_id = %s',
+                           [seat_id])
+            prev_booking = cursor.fetchone()
+
+            if prev_booking or not seat_id:
+                booked[flight_id]['seats'].append({
+                    'position': {
+                        'row': row,
+                        'col': col,
+                    },
+                    'flight_id': flight_id,
+                    'success': False,
+                    'error': 'Seat already booked' if prev_booking else 'Seat does not exist'
+                })
+                continue
+
+            # Attempt to book seat
+            if booking_id:
+                cursor.execute('INSERT INTO bookings (id, user_id, seat_id) '
+                               'SELECT %s, %s, %s '
+                               'WHERE NOT EXISTS ('
+                               '   SELECT id FROM bookings '
+                               '   WHERE seat_id = %s)'
+                               'RETURNING id',
+                               [booking_id, user_id, seat_id, seat_id])
+            else:
+                cursor.execute('INSERT INTO bookings (user_id, seat_id) '
+                               'SELECT %s, %s '
+                               'WHERE NOT EXISTS ('
+                               '   SELECT id FROM bookings '
+                               '   WHERE seat_id = %s)'
+                               'RETURNING id',
+                               [user_id, seat_id, seat_id])
+                booking_id = cursor.fetchone()
+
+            if not booking_id:
+                booked[flight_id]['seats'].append({
+                    'position': {
+                        'row': row,
+                        'col': col,
+                    },
+                    'flight_id': flight_id,
+                    'success': False,
+                    'error': 'Seat already booked'
+                })
+                continue
+            booking_id = booking_id[0]
+
+            # Update seat info
+            cursor.execute('UPDATE seats SET user_info = %s, user_id = %s WHERE id = %s',
+                           [json.dumps(user_info), user_id, seat_id])
+
+            # Store luggage info
+            inserted_luggage = []
+            for l in luggage:
+                cursor.execute(
+                    'INSERT INTO cargo (seat_id, flight_id, weight) '
+                    'VALUES (%s, %s, %s) '
+                    'RETURNING id',
+                    [seat_id, flight_id, l.get('weight')])
+                luggage_id = cursor.fetchone()
+                inserted_luggage.append(
+                    {'id': luggage_id[0], 'weight': l.get('weight')})
+
+            booked[flight_id]['booking_id'] = booking_id
+            booked[flight_id]['seats'].append({
+                'position': {
+                    'row': row,
+                    'col': col,
+                },
+                'success': True,
+                'luggage': inserted_luggage
+            })
+
+            db.commit()
+
+    cursor.close()
+
+    return jsonify([{'flight_id': k, 'info': v} for k, v in booked.items()])
 
 
 @bookings.route('/<int:booking_id>', methods=['GET', 'DELETE'])
