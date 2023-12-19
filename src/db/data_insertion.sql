@@ -1,16 +1,16 @@
--- Inserción de datos en la tabla airline
-INSERT INTO airline (icao, name) VALUES
-('ICAO001', 'Airline1'),
-('ICAO002', 'Airline2'),
-('ICAO003', 'Airline3'),
-('ICAO004', 'Airline4');
+-- Inserción de datos en la tabla airlines
+INSERT INTO airlines (icao, name) VALUES
+('ICAO001', 'Airline One'),
+('ICAO002', 'Airline Two'),
+('ICAO003', 'Airline Three'),
+('ICAO004', 'Airline Four');
 
 -- Inserción de datos en la tabla airports
 INSERT INTO airports (iata, name, city, country) VALUES
-('AAA', 'Airport1', 'City1', 'Country1'),
-('BBB', 'Airport2', 'City2', 'Country2'),
-('CCC', 'Airport3', 'City3', 'Country3'),
-('DDD', 'Airport4', 'City4', 'Country4');
+('AAA', 'Airport A', 'City A', 'Country A'),
+('BBB', 'Airport B', 'City B', 'Country B'),
+('CCC', 'Airport C', 'City C', 'Country C'),
+('DDD', 'Airport D', 'City D', 'Country D');
 
 -- Inserción de datos en la tabla luggage_fees
 INSERT INTO luggage_fees (weight, fee, airline_id) VALUES
@@ -21,17 +21,17 @@ INSERT INTO luggage_fees (weight, fee, airline_id) VALUES
 
 -- Inserción de datos en la tabla seat_luxury_fees
 INSERT INTO seat_luxury_fees (luxury, fee, description, airline_id) VALUES
-('FirstClass', 150.00, 'FirstClass', 1),
-('BusinessClass', 100.00, 'BusinessClass', 2),
-('PremiumEconomy', 80.00, 'PremiumEconomy', 3),
-('Economy', 50.00, 'Economy', 4);
+('FirstClass', 150.00, 'Luxurious first-class seating', 1),
+('BusinessClass', 100.00, 'Comfortable business-class seating', 2),
+('PremiumEconomy', 80.00, 'Spacious premium economy seating', 3),
+('Economy', 50.00, 'Standard economy seating', 4);
 
 -- Inserción de datos en la tabla flights
-INSERT INTO flights (flight_number, airline_id, origin_id, destination_id, duration, departure_date, arrival_date) VALUES
-(101, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00'),
-(202, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00'),
-(303, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00'),
-(404, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00');
+INSERT INTO flights (id, flight_number, airline_id, origin_id, destination_id, duration, departure_date, arrival_date) VALUES
+('FLIGHT001', 101, 1, 1, 2, 120, '2023-01-01 08:00:00', '2023-01-01 10:00:00'),
+('FLIGHT002', 202, 2, 2, 3, 180, '2023-01-02 12:00:00', '2023-01-02 15:00:00'),
+('FLIGHT003', 303, 3, 3, 4, 150, '2023-01-03 16:00:00', '2023-01-03 18:30:00'),
+('FLIGHT004', 404, 4, 4, 1, 200, '2023-01-04 20:00:00', '2023-01-05 00:00:00');
 
 -- Inserción de datos en la tabla bonifications
 INSERT INTO bonifications (name, description, value, type) VALUES
@@ -55,25 +55,25 @@ INSERT INTO users_bonifications (user_id, bonification_id) VALUES
 ('111111111D', 4);
 
 -- Inserción de datos en la tabla seats
-INSERT INTO seats (row, col, price, flight_number, user_id, luxury_type, airline_id, user_info) VALUES
-(1, 'A', 100.00, 101, '123456789A', 'FirstClass', 1, '{"name": "Carlos", "dni": "51351315x"}'),
-(2, 'B', 80.00, 101, '987654321B', 'FirstClass', 1, '{"name": "José", "dni": "5168463fs"}'),
-(3, 'C', 60.00, 202, '555555555C', 'BusinessClass', 2, '{"name": "Julián", "dni": "135832165f"}'),
-(4, 'D', 40.00, 303, '111111111D', 'PremiumEconomy', 3, '{"name": "Andrés", "dni": "65168341f"}');
+INSERT INTO seats (row, col, price, flight_id, user_id, luxury_id, user_info) VALUES
+(1, 'A', 100.00, 'ICAO001101', '123456789A', 1, '{"seat_preference": "window"}'),
+(2, 'B', 80.00, 'ICAO002202', '987654321B', 2, '{"seat_preference": "aisle"}'),
+(3, 'C', 60.00, 'ICAO003303', '555555555C', 3, '{"seat_preference": "middle"}'),
+(4, 'D', 40.00, 'ICAO004404', '111111111D', 4, '{"seat_preference": "window"}');
 
 -- Inserción de datos en la tabla bookings
 INSERT INTO bookings (user_id, seat_id, date, payment_status) VALUES
-('123456789A', 1, '2023-01-01', 'Paid'),
-('987654321B', 2, '2023-01-02', 'Paid'),
-('555555555C', 3, '2023-01-03', 'Pending'),
-('111111111D', 4, '2023-01-04', 'Paid');
+('123456789A', 1, '2023-01-01', 'fulfilled'),
+('987654321B', 2, '2023-01-02', 'fulfilled'),
+('555555555C', 3, '2023-01-03', 'pending'),
+('111111111D', 4, '2023-01-04', 'fulfilled');
 
 -- Inserción de datos en la tabla cargo
-INSERT INTO cargo (flight_number, airline_id, seat_id, weight, price) VALUES
-(101, 1, 1, 15, 30.00),
-(202, 2, 2, 20, 40.00),
-(303, 3, 3, 25, 50.00),
-(404, 4, 4, 30, 60.00);
+INSERT INTO cargo (flight_id, seat_id, weight, price) VALUES
+('ICAO001101', 1, 15, 30.00),
+('ICAO002202', 2, 20, 40.00),
+('ICAO003303', 3, 25, 50.00),
+('ICAO004404', 4, 30, 60.00);
 
 -- Inserción de datos en la tabla cancelations
 INSERT INTO cancelations (booking_id, date) VALUES
