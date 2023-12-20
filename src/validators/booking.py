@@ -17,15 +17,5 @@ class FlightSchema(Schema):
 
 
 class BookingSchema(Schema):
-    """
-    {
-      user_id: string,
-      flights: {
-        flight_id: string,
-        seats: { line: number, column: string }[],
-        luggage: { weight: number }[]
-      }[]
-    }"""
-
     user_id = fields.Str(required=True)
     flights = fields.List(fields.Nested(FlightSchema), required=True)

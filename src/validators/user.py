@@ -2,11 +2,6 @@ from marshmallow import Schema, fields
 
 
 class BaseUserSchema(Schema):
-    """
-    {
-      'dni', 'email','gender','name','phone', 'surnames'
-    }"""
-
     email = fields.Str(required=True)
     gender = fields.Str(required=True)
     name = fields.Str(required=True)
