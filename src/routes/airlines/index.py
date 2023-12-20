@@ -1,6 +1,9 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
+from marshmallow import ValidationError
 
 from ...db import get_cursor
+from ...validators import AirlineSchema
+
 from .flights import flights
 from .luggage_fees import luggage_fees
 from .luxury_fees import luxury_fees
@@ -18,28 +21,28 @@ def list_airlines():
         cursor.execute('SELECT * FROM airlines;')
         output = cursor.fetchall()
         return jsonify(output)
-    if request.method == 'POST':
-        user_data = request.json
-        cursor = get_cursor()
 
-        required_fields = ['icao', 'id','name']
-        if not all(field in user_data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+    user_data = request.json
+    cursor = get_cursor()
 
-        cursor = get_cursor()
-        cursor.execute('INSERT INTO airlines (icao, id, name) VALUES (%s, %s, %s);',
-                       (user_data['icao'], user_data['id'], user_data['name']))
+    try:
+        AirlineSchema().load(user_data)
+    except ValidationError as e:
+        abort(400, e.messages)
 
-        cursor.connection.commit()
-        cursor.close()
+    cursor = get_cursor()
+    cursor.execute('INSERT INTO airlines (icao, id, name) VALUES (%s, %s, %s);',
+                   (user_data['icao'], user_data['id'], user_data['name']))
 
-        return jsonify({'message': 'Airline created successfully'}), 201
+    cursor.connection.commit()
+    cursor.close()
+
+    return jsonify({'message': 'Airline created successfully'}), 201
 
 
 @airlines.route('/<int:id>', methods=['GET'])
 def airline_info(id):
-    if request.method == 'GET':
-        cursor = get_cursor()
-        cursor.execute('SELECT * FROM airlines WHERE id = %s;', (id,))
-        output = cursor.fetchone()
-        return jsonify(output)
+    cursor = get_cursor()
+    cursor.execute('SELECT * FROM airlines WHERE id = %s;', (id,))
+    output = cursor.fetchone()
+    return jsonify(output)

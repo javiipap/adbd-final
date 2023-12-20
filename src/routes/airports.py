@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
+from marshmallow import ValidationError
 
 from ..db import get_cursor
+from ..validators import AirportSchema
 
 airports = Blueprint('airports', __name__, url_prefix='/airports')
 
@@ -13,19 +15,15 @@ def list_airport():
         output = cursor.fetchall()
         return jsonify(output)
 
-    if request.method == 'POST':
-        airport_data = request.json
-        cursor = get_cursor()
+    airport_data = request.json
+    cursor = get_cursor()
 
-        required_fields = ['name', 'country','city','iata']
-        if not all(field in airport_data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+    try:
+        AirportSchema().load(airport_data)
+    except ValidationError as e:
+        abort(400, e.messages)
 
-        cursor = get_cursor()
-        cursor.execute('INSERT INTO airports (name, country, city, iata) VALUES (%s, %s, %s, %s);',
-                       (airport_data['name'], airport_data['country'], airport_data['city'], airport_data['iata']))
+    cursor.execute('INSERT INTO airports (name, country, city, iata) VALUES (%s, %s, %s, %s);',
+                   (airport_data['name'], airport_data['country'], airport_data['city'], airport_data['iata']))
 
-        cursor.connection.commit()
-        cursor.close()
-
-        return jsonify({'message': 'Airport created successfully'}), 201
+    return jsonify({'message': 'Airport created successfully'}), 201

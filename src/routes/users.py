@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 
 from ..db import get_cursor
+from ..validators import BaseUserSchema, WithDNIUserSchema
+from marshmallow import ValidationError
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
@@ -12,22 +14,23 @@ def list_users():
         cursor.execute('SELECT * FROM users;')
         output = cursor.fetchall()
         return jsonify(output)
-    if request.method == 'POST':
-        user_data = request.json
-        cursor = get_cursor()
 
-        required_fields = ['dni', 'email','gender','name','phone', 'surnames']
-        if not all(field in user_data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+    user_data = request.json
+    cursor = get_cursor()
 
-        cursor = get_cursor()
-        cursor.execute('INSERT INTO users (dni, email, gender, name, phone, surnames) VALUES (%s, %s, %s, %s, %s, %s);',
-                       (user_data['dni'], user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames']))
+    try:
+        WithDNIUserSchema().load(user_data)
+    except ValidationError as e:
+        abort(400, e.messages)
 
-        cursor.connection.commit()
-        cursor.close()
+    cursor = get_cursor()
+    cursor.execute('INSERT INTO users (dni, email, gender, name, phone, surnames) VALUES (%s, %s, %s, %s, %s, %s);',
+                   (user_data['dni'], user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames']))
 
-        return jsonify({'message': 'User created successfully'}), 201
+    cursor.connection.commit()
+    cursor.close()
+
+    return jsonify({'message': 'User created successfully'}), 201
 
 
 @users.route('/<string:dni>', methods=['GET', 'PUT', 'DELETE'])
@@ -37,26 +40,21 @@ def user_info(dni):
         cursor.execute('SELECT * FROM users WHERE dni=%s;', (dni,))
         output = cursor.fetchall()
         return jsonify(output)
-    if request.method == 'PUT':
+    elif request.method == 'PUT':
         user_data = request.json
-        cursor = get_cursor()
 
-        required_fields = ['email','gender','name','phone', 'surnames']
-        if not all(field in user_data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+        try:
+            BaseUserSchema().load(user_data)
+        except ValidationError as e:
+            abort(400, e.messages)
 
         cursor = get_cursor()
         cursor.execute('UPDATE users SET email=%s, gender=%s, name=%s, phone=%s, surnames=%s WHERE dni=%s',
-                       (user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames'], dni))
+                       [user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames'], dni])
 
-        cursor.connection.commit()
-        cursor.close()
-
-        return jsonify({'message': 'User modified successfully'}), 201
-    if request.method == 'DELETE':
+        return jsonify({'message': 'User modified successfully'}), 200
+    elif request.method == 'DELETE':
         cursor = get_cursor()
-        cursor.execute('DELETE FROM users WHERE dni=%s',
-                       (dni,))
-        cursor.connection.commit()
-        cursor.close()
-        return jsonify({'message': 'Delete user successfully'}), 201
+        cursor.execute('DELETE FROM users WHERE dni=%s', [dni])
+
+        return jsonify({'message': 'Delete user successfully'}), 200
