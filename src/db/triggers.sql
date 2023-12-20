@@ -91,3 +91,15 @@ BEGIN
   RETURN price;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER remove_luggage
+AFTER DELETE ON bookings
+FOR EACH ROW EXECUTE PROCEDURE remove_luggage();
+
+CREATE OR REPLACE FUNCTION remove_luggage()
+RETURNS TRIGGER AS $$
+BEGIN
+  DELETE FROM cargo WHERE seat_id = OLD.seat_id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
