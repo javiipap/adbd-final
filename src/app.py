@@ -1,9 +1,12 @@
 import json
-from flask import Flask, Blueprint
+import logging
+import psycopg2
+from flask import Flask, Blueprint, jsonify
 from werkzeug.exceptions import HTTPException
 
 from .routes import users, airports, bonifications, airlines, bookings
 from .db import close_db
+
 
 app = Flask(__name__)
 
@@ -34,4 +37,38 @@ def handle_exception(e):
         "message": e.description,
     })
     response.content_type = "application/json"
+
+    if e.code >= 500:
+        logging.exception(e)
+
     return response
+
+
+@app.errorhandler(psycopg2.Error)
+def handle_psycopg2_exception(e):
+    """Return JSON instead of HTML for psycopg2 errors."""
+    if app.debug:
+        return e
+
+    logging.exception(e)
+
+    return jsonify({
+        "code": 500,
+        "name": "Internal Server Error",
+        "message": "Error while communicating to the database",
+    }), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Return JSON instead of HTML for generic errors."""
+    if app.debug:
+        return e
+
+    logging.exception(e)
+
+    return jsonify({
+        "code": 500,
+        "name": "Internal Server Error",
+        "message": "Something went wrong",
+    }), 500
