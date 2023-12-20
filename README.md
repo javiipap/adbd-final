@@ -6,6 +6,23 @@ Este proyecto ha sido desarrollado por:
 - Iván Texenery Díaz García [alu0101429762@ull.edu.es](mailto:alu0101429762@ull.edu.es)
 - Javier Padilla Pío [alu0101410463@ull.edu.es](mailto:alu0101410463@ull.edu.es)
 
+## Descripción
+
+Se ha desarrollado una API REST que permite gestionar los distintos vuelos de un
+sistema de reserva. Para ello se ha utilizado el framework
+[Flask](https://flask.palletsprojects.com/en/3.0.x/) junto con
+[PostgrSQL](https://www.postgresql.org/). Se podrán crear vuelos, agencias,
+reservas y clientes. Además, se podrán realizar consultas sobre los vuelos
+disponibles, las reservas realizadas y los clientes registrados.
+
+### Entidades
+
+![Entidad relación](./doc/imgs/erd.png)
+
+### Diagrama de tablas
+
+![Diagrama de tablas](./doc/imgs/relational.png)
+
 ## Instalación
 
 ```bash
@@ -15,6 +32,15 @@ $ python3 -m venv env
 $ source env/bin/activate
 $ pip install -r requirements.txt
 
+```
+
+## Ejecución
+
+```bash
+$ ./init.sh
+# También se puede ejecutar manualmente
+$ source env/bin/activate
+$ python main.py
 ```
 
 ## Contribuir
@@ -29,20 +55,20 @@ $ pip freeze > requirements.txt
 
 **_Correcto_**
 
-```json
-{
-  "count": number,
-  "next_page": string | null,
-  "values": any[]
+```ts
+interface Response {
+  count: number;
+  next_page: string | null;
+  values: any[];
 }
 ```
 
 **_Error_**
 
-```json
-{
-  "code": number,
-  "name": string,
-  "message": string
+```ts
+interface Error {
+  code: number;
+  name: string;
+  message: string;
 }
 ```
