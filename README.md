@@ -11,7 +11,7 @@ Este proyecto ha sido desarrollado por:
 Se ha desarrollado una API REST que permite gestionar los distintos vuelos de un
 sistema de reserva. Para ello se ha utilizado el framework
 [Flask](https://flask.palletsprojects.com/en/3.0.x/) junto con
-[PostgrSQL](https://www.postgresql.org/). Se podrán crear vuelos, agencias,
+[PostgreSQL](https://www.postgresql.org/). Se podrán crear vuelos, agencias,
 reservas y clientes. Además, se podrán realizar consultas sobre los vuelos
 disponibles, las reservas realizadas y los clientes registrados.
 
@@ -49,26 +49,4 @@ Cada vez que se instale una dependencia ejecutar el siguiente comando para actua
 
 ```bash
 $ pip freeze > requirements.txt
-```
-
-## Estructura de respuesta
-
-**_Correcto_**
-
-```ts
-interface Response {
-  count: number;
-  next_page: string | null;
-  values: any[];
-}
-```
-
-**_Error_**
-
-```ts
-interface Error {
-  code: number;
-  name: string;
-  message: string;
-}
 ```
