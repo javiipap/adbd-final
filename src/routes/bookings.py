@@ -39,17 +39,20 @@ def hello():
 
         for booking in raw:
             if booking['booking_id'] not in parsed:
+                cursor.execute('SELECT "calculate_discounted_booking_price"(%s),'
+                               '       "calculate_booking_price"(%s)',
+                               [booking['booking_id'], booking['booking_id']])
+                prices = cursor.fetchone()
+
                 parsed[booking['booking_id']] = {
                     'booking_date': booking['booking_date'],
                     'flight_id': booking['flight_id'],
                     'departure_date': booking['departure_date'],
                     'arrival_date': booking['arrival_date'],
                     'seats': [],
-                    'total_price': 0
+                    'price_raw': prices['calculate_booking_price'],
+                    'price': prices['calculate_discounted_booking_price'],
                 }
-
-            parsed[booking['booking_id']
-                   ]['total_price'] += booking['price']
 
             parsed[booking['booking_id']]['seats'].append({
                 'seat_id': booking['seat_id'],
@@ -62,7 +65,7 @@ def hello():
                 'luggage': [{'id': l_id, 'weight': l_weight} for l_id, l_weight in zip(booking['luggage_ids'].split(':'), booking['luggage_weights'].split(':'))]
             })
 
-        return jsonify([{'booking_id': k, 'info': v} for k, v in parsed.items()])
+        return jsonify([{'booking_id': k, **v} for k, v in parsed.items()])
 
     body = request.get_json()
 
@@ -151,8 +154,8 @@ def hello():
             booking_id = booking_id[0]
 
             # Update seat info
-            cursor.execute('UPDATE seats SET user_info = %s, user_id = %s WHERE id = %s',
-                           [json.dumps(user_info), user_id, seat_id])
+            cursor.execute('UPDATE seats SET user_info = %s WHERE id = %s',
+                           [json.dumps(user_info), seat_id])
 
             # Store luggage info
             inserted_luggage = []

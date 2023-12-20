@@ -51,3 +51,43 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_cargo_price
 BEFORE INSERT OR UPDATE ON cargo
 FOR EACH ROW EXECUTE FUNCTION cargo_price();
+
+
+CREATE OR REPLACE FUNCTION calculate_booking_price(booking_id INTEGER)
+RETURNS DECIMAL(7, 2) AS $$
+DECLARE
+  price DECIMAL(7, 2) := 0.0;
+BEGIN
+  price := (SELECT seats.price FROM seats
+            INNER JOIN bookings ON bookings.seat_id = seats.id
+            WHERE bookings.id = booking_id);
+  price := price + (SELECT SUM(cargo.price) 
+                    FROM cargo
+                    INNER JOIN seats ON seats.id = cargo.seat_id
+                    INNER JOIN bookings ON bookings.seat_id = seats.id
+                    WHERE bookings.id = booking_id);
+  RETURN price;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION calculate_discounted_booking_price(booking_id INTEGER)
+RETURNS DECIMAL(7, 2) AS $$
+DECLARE
+  price DECIMAL(7, 2) := 0.0;
+  userr VARCHAR := 0;
+BEGIN
+  userr := (SELECT bookings.user_id FROM bookings WHERE id = booking_id LIMIT 1);
+  price := (SELECT "calculate_booking_price"(booking_id));
+  price := price - (SELECT COALESCE(SUM(value), 0)
+                    FROM bonifications
+                    INNER JOIN users_bonifications ON bonifications.id = users_bonifications.bonification_id
+                    AND users_bonifications.user_id = userr
+                    WHERE bonifications.type = 'fixed');
+  price := price - (SELECT COALESCE(SUM(price * (bonifications.value / 100.0)), 0)
+                    FROM bonifications
+                    INNER JOIN users_bonifications ON bonifications.id = users_bonifications.bonification_id
+                    AND users_bonifications.user_id = userr
+                    WHERE bonifications.type = 'percent');
+  RETURN price;
+END;
+$$ LANGUAGE plpgsql;
