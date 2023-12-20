@@ -27,9 +27,6 @@ def list_users():
     cursor.execute('INSERT INTO users (dni, email, gender, name, phone, surnames) VALUES (%s, %s, %s, %s, %s, %s);',
                    (user_data['dni'], user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames']))
 
-    cursor.connection.commit()
-    cursor.close()
-
     return jsonify({'message': 'User created successfully'}), 201
 
 

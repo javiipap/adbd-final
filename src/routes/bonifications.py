@@ -29,7 +29,4 @@ def list_bonification():
     cursor.execute('INSERT INTO bonifications (name, value, description, type) VALUES (%s, %s, %s, %s);',
                    (bonification_data['name'], bonification_data['value'], bonification_data['description'], bonification_data['type']))
 
-    cursor.connection.commit()
-    cursor.close()
-
     return jsonify({'message': 'Bonification created successfully'}), 201

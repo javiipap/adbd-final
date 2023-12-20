@@ -34,9 +34,6 @@ def list_airlines():
     cursor.execute('INSERT INTO airlines (icao, id, name) VALUES (%s, %s, %s);',
                    (user_data['icao'], user_data['id'], user_data['name']))
 
-    cursor.connection.commit()
-    cursor.close()
-
     return jsonify({'message': 'Airline created successfully'}), 201
 
 
