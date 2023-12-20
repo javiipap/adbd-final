@@ -16,17 +16,17 @@ def list_bonification():
             'SELECT name, value, description, type FROM bonifications;')
         output = cursor.fetchall()
         return jsonify(output)
+    elif request.method == 'POST':
+        bonification_data = request.json
+        cursor = get_cursor()
 
-    bonification_data = request.json
-    cursor = get_cursor()
+        try:
+            BonificationSchema().load(bonification_data)
+        except ValidationError as e:
+            abort(400, e.messages)
 
-    try:
-        BonificationSchema().load(bonification_data)
-    except ValidationError as e:
-        abort(400, e.messages)
+        cursor = get_cursor()
+        cursor.execute('INSERT INTO bonifications (name, value, description, type) VALUES (%s, %s, %s, %s);',
+                       (bonification_data['name'], bonification_data['value'], bonification_data['description'], bonification_data['type']))
 
-    cursor = get_cursor()
-    cursor.execute('INSERT INTO bonifications (name, value, description, type) VALUES (%s, %s, %s, %s);',
-                   (bonification_data['name'], bonification_data['value'], bonification_data['description'], bonification_data['type']))
-
-    return jsonify({'message': 'Bonification created successfully'}), 201
+        return jsonify({'message': 'Bonification created successfully'}), 201

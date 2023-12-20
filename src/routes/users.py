@@ -14,20 +14,20 @@ def list_users():
         cursor.execute('SELECT * FROM users;')
         output = cursor.fetchall()
         return jsonify(output)
+    elif request.method == 'POST':
+        user_data = request.json
+        cursor = get_cursor()
 
-    user_data = request.json
-    cursor = get_cursor()
+        try:
+            WithDNIUserSchema().load(user_data)
+        except ValidationError as e:
+            abort(400, e.messages)
 
-    try:
-        WithDNIUserSchema().load(user_data)
-    except ValidationError as e:
-        abort(400, e.messages)
+        cursor = get_cursor()
+        cursor.execute('INSERT INTO users (dni, email, gender, name, phone, surnames) VALUES (%s, %s, %s, %s, %s, %s);',
+                       (user_data['dni'], user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames']))
 
-    cursor = get_cursor()
-    cursor.execute('INSERT INTO users (dni, email, gender, name, phone, surnames) VALUES (%s, %s, %s, %s, %s, %s);',
-                   (user_data['dni'], user_data['email'], user_data['gender'], user_data['name'], user_data['phone'], user_data['surnames']))
-
-    return jsonify({'message': 'User created successfully'}), 201
+        return jsonify({'message': 'User created successfully'}), 201
 
 
 @users.route('/<string:dni>', methods=['GET', 'PUT', 'DELETE'])

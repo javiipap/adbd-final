@@ -21,20 +21,20 @@ def list_airlines():
         cursor.execute('SELECT * FROM airlines;')
         output = cursor.fetchall()
         return jsonify(output)
+    elif request.method == 'POST':
+        user_data = request.json
+        cursor = get_cursor()
 
-    user_data = request.json
-    cursor = get_cursor()
+        try:
+            AirlineSchema().load(user_data)
+        except ValidationError as e:
+            abort(400, e.messages)
 
-    try:
-        AirlineSchema().load(user_data)
-    except ValidationError as e:
-        abort(400, e.messages)
+        cursor = get_cursor()
+        cursor.execute('INSERT INTO airlines (icao, id, name) VALUES (%s, %s, %s);',
+                       (user_data['icao'], user_data['id'], user_data['name']))
 
-    cursor = get_cursor()
-    cursor.execute('INSERT INTO airlines (icao, id, name) VALUES (%s, %s, %s);',
-                   (user_data['icao'], user_data['id'], user_data['name']))
-
-    return jsonify({'message': 'Airline created successfully'}), 201
+        return jsonify({'message': 'Airline created successfully'}), 201
 
 
 @airlines.route('/<int:id>', methods=['GET'])

@@ -14,16 +14,16 @@ def list_airport():
         cursor.execute('SELECT name, country, city, iata FROM airports;')
         output = cursor.fetchall()
         return jsonify(output)
+    elif request.method == 'POST':
+        airport_data = request.json
+        cursor = get_cursor()
 
-    airport_data = request.json
-    cursor = get_cursor()
+        try:
+            AirportSchema().load(airport_data)
+        except ValidationError as e:
+            abort(400, e.messages)
 
-    try:
-        AirportSchema().load(airport_data)
-    except ValidationError as e:
-        abort(400, e.messages)
+        cursor.execute('INSERT INTO airports (name, country, city, iata) VALUES (%s, %s, %s, %s);',
+                       (airport_data['name'], airport_data['country'], airport_data['city'], airport_data['iata']))
 
-    cursor.execute('INSERT INTO airports (name, country, city, iata) VALUES (%s, %s, %s, %s);',
-                   (airport_data['name'], airport_data['country'], airport_data['city'], airport_data['iata']))
-
-    return jsonify({'message': 'Airport created successfully'}), 201
+        return jsonify({'message': 'Airport created successfully'}), 201
