@@ -55,11 +55,11 @@ INSERT INTO users_bonifications (user_id, bonification_id) VALUES
 ('111111111D', 4);
 
 -- Inserción de datos en la tabla seats
-INSERT INTO seats (row, col, price, flight_number, airline_id, user_id, luxury_type, user_info) VALUES
-(1, 'A', 100.00, 101, 1, '123456789A', 'FirstClass', '{"seat_preference": "window"}'),
-(2, 'B', 80.00, 202, 2, '987654321B', 'BusinessClass', '{"seat_preference": "aisle"}'),
-(3, 'C', 60.00, 303, 3, '555555555C', 'PremiumEconomy', '{"seat_preference": "middle"}'),
-(4, 'D', 40.00, 404, 4, '111111111D', 'Economy', '{"seat_preference": "window"}');
+INSERT INTO seats (row, col, price, flight_number, airline_id, luxury_type, user_info) VALUES
+(1, 'A', 100.00, 101, 1,'FirstClass', '{"seat_preference": "window"}'),
+(2, 'B', 80.00, 202, 2, 'BusinessClass', '{"seat_preference": "aisle"}'),
+(3, 'C', 60.00, 303, 3, 'PremiumEconomy', '{"seat_preference": "middle"}'),
+(4, 'D', 40.00, 404, 4, 'Economy', '{"seat_preference": "window"}');
 
 -- Inserción de datos en la tabla bookings
 INSERT INTO bookings (user_id, seat_id, date, payment_status) VALUES
