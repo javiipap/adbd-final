@@ -90,7 +90,6 @@ CREATE TABLE seats (
   price DECIMAL(7, 2) NOT NULL,
   flight_number INTEGER NOT NULL,
   airline_id INTEGER NOT NULL,
-  user_id VARCHAR REFERENCES users(dni) ON DELETE SET NULL,
   luxury_type VARCHAR,
   user_info jsonb NOT NULL DEFAULT '{}'::jsonb,
   PRIMARY KEY (row, col, flight_number, airline_id),
