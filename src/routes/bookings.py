@@ -7,63 +7,74 @@ import json
 
 bookings = Blueprint('bookings', __name__, url_prefix='/bookings')
 
+base_query = """
+SELECT b.id booking_id,
+       f.id flight_id,
+       s.id seat_id,
+       s.col,
+       s.row,
+       array_to_string(array_agg(DISTINCT c.id), \':\') luggage_ids,
+       array_to_string(array_agg(DISTINCT c.weight), \':\') luggage_weights,
+       b.date booking_date,
+       f.departure_date departure_date,
+       f.arrival_date arrival_date,
+       s.price,
+       s.user_info
+FROM bookings b INNER JOIN seats s
+ON b.seat_id = s.id
+INNER JOIN flights f
+ON s.flight_number = f.flight_number AND s.airline_id = f.airline_id
+INNER JOIN cargo c
+ON c.seat_id = s.id
+GROUP BY b.id, f.id, s.id, s.col, s.row, s.id, b.date, f.departure_date, f.arrival_date, s.price, s.user_info"""
+
+
+def parse_bookings(raw_bookings):
+    parsed = defaultdict(dict)
+    cursor = get_cursor()
+
+    for booking in raw_bookings:
+        if booking['booking_id'] not in parsed:
+            cursor.execute('SELECT "calculate_discounted_booking_price"(%s),'
+                           '       "calculate_booking_price"(%s)',
+                           [booking['booking_id'], booking['booking_id']])
+            prices = cursor.fetchone()
+
+            parsed[booking['booking_id']] = {
+                'booking_date': booking['booking_date'],
+                'flight_id': booking['flight_id'],
+                'departure_date': booking['departure_date'],
+                'arrival_date': booking['arrival_date'],
+                'seats': [],
+                'price_raw': prices['calculate_booking_price'],
+                'price': prices['calculate_discounted_booking_price'],
+            }
+
+        parsed[booking['booking_id']]['seats'].append({
+            'seat_id': booking['seat_id'],
+            'position': {
+                'col': booking['col'],
+                'row': booking['row'],
+            },
+            'price': booking['price'],
+            'user_info': booking['user_info'],
+            'luggage': [{'id': l_id, 'weight': l_weight} for l_id, l_weight in zip(booking['luggage_ids'].split(':'), booking['luggage_weights'].split(':'))]
+        })
+
+    return parsed
+
 
 @bookings.route('', methods=['GET', 'POST'])
-def hello():
+def bookings_controller():
     db = get_db()
 
     if request.method == 'GET':
         cursor = get_cursor()
-        cursor.execute(
-            'SELECT b.id booking_id,'
-            '       f.id flight_id,'
-            '       s.id seat_id,'
-            '       s.col,'
-            '       s.row,'
-            '       array_to_string(array_agg(DISTINCT c.id), \':\') luggage_ids,'
-            '       array_to_string(array_agg(DISTINCT c.weight), \':\') luggage_weights,'
-            '       b.date booking_date,'
-            '       f.departure_date departure_date,'
-            '       f.arrival_date arrival_date,'
-            '       s.price,'
-            '       s.user_info '
-            'FROM bookings b INNER JOIN seats s '
-            'ON b.seat_id = s.id '
-            'INNER JOIN flights f '
-            'ON s.flight_number = f.flight_number AND s.airline_id = f.airline_id '
-            'INNER JOIN cargo c '
-            'ON c.seat_id = s.id '
-            'GROUP BY b.id, f.id, s.id, s.col, s.row, s.id, b.date, f.departure_date, f.arrival_date, s.price, s.user_info')
+        cursor.execute(base_query)
         raw = cursor.fetchall()
-        parsed = defaultdict(dict)
+        raw = raw if raw else []
 
-        for booking in raw:
-            if booking['booking_id'] not in parsed:
-                cursor.execute('SELECT "calculate_discounted_booking_price"(%s),'
-                               '       "calculate_booking_price"(%s)',
-                               [booking['booking_id'], booking['booking_id']])
-                prices = cursor.fetchone()
-
-                parsed[booking['booking_id']] = {
-                    'booking_date': booking['booking_date'],
-                    'flight_id': booking['flight_id'],
-                    'departure_date': booking['departure_date'],
-                    'arrival_date': booking['arrival_date'],
-                    'seats': [],
-                    'price_raw': prices['calculate_booking_price'],
-                    'price': prices['calculate_discounted_booking_price'],
-                }
-
-            parsed[booking['booking_id']]['seats'].append({
-                'seat_id': booking['seat_id'],
-                'position': {
-                    'col': booking['col'],
-                    'row': booking['row'],
-                },
-                'price': booking['price'],
-                'user_info': booking['user_info'],
-                'luggage': [{'id': l_id, 'weight': l_weight} for l_id, l_weight in zip(booking['luggage_ids'].split(':'), booking['luggage_weights'].split(':'))]
-            })
+        parsed = parse_bookings(raw)
 
         return jsonify([{'booking_id': k, **v} for k, v in parsed.items()])
 
@@ -187,5 +198,19 @@ def hello():
 
 
 @bookings.route('/<int:booking_id>', methods=['GET', 'DELETE'])
-def reservation(booking_id):
-    ...
+def booking(booking_id):
+    if request.method == 'GET':
+        cursor = get_cursor()
+        cursor.execute(base_query.replace(
+            'GROUP BY', 'WHERE b.id = %s GROUP BY '), [booking_id])
+        raw = cursor.fetchall()
+        raw = raw if raw else []
+
+        parsed = parse_bookings(raw)
+
+        return jsonify([{'booking_id': k, **v} for k, v in parsed.items()][0])
+    elif request.method == 'DELETE':
+        cursor = get_cursor()
+        cursor.execute('DELETE FROM bookings WHERE id = %s', [booking_id])
+
+        return jsonify({"message": f"Booking {booking_id} deleted"})
