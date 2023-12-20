@@ -10,6 +10,7 @@ from .db import close_db
 
 app = Flask(__name__)
 
+app.url_map.strict_slashes = False
 API_BASE = '/api'
 
 prefixed = Blueprint('prefixed', __name__, url_prefix=API_BASE)
