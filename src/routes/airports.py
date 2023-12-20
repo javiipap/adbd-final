@@ -6,8 +6,7 @@ airports = Blueprint('airports', __name__, url_prefix='/airports')
 
 
 @airports.route('', methods=['GET', 'POST'])
-def hello():
-    # return 'Hello, airports!'
+def list_airport():
     if request.method == 'GET':
         cursor = get_cursor()
         cursor.execute('SELECT name, country, city, iata FROM airports;')

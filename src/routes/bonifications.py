@@ -7,7 +7,7 @@ bonifications = Blueprint('bonifications', __name__,
 
 
 @bonifications.route('', methods=['GET', 'POST'])
-def hello():
+def list_bonification():
     if request.method == 'GET':
         cursor = get_cursor()
         cursor.execute('SELECT name, value, description, type FROM bonifications;')
