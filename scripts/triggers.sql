@@ -92,10 +92,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER remove_luggage
-AFTER DELETE ON bookings
-FOR EACH ROW EXECUTE PROCEDURE remove_luggage();
-
 CREATE OR REPLACE FUNCTION remove_luggage()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -103,6 +99,10 @@ BEGIN
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER remove_luggage
+AFTER DELETE ON bookings
+FOR EACH ROW EXECUTE PROCEDURE remove_luggage();
 
 CREATE OR REPLACE FUNCTION prevent_luggage_overload()
 RETURNS TRIGGER AS $$
@@ -141,3 +141,16 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER prevent_luggage_on_unbooked_seat
 BEFORE INSERT ON cargo
 FOR EACH ROW EXECUTE FUNCTION prevent_luggage_on_unbooked_seat();
+
+CREATE OR REPLACE FUNCTION set_cancelation_info()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.seat_id = (SELECT seat_id FROM bookings WHERE id = NEW.booking_id LIMIT 1);
+  NEW.user_id = (SELECT user_id FROM bookings WHERE id = NEW.booking_id LIMIT 1);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_cancelation_info
+BEFORE INSERT ON cancelations
+FOR EACH ROW EXECUTE FUNCTION set_cancelation_info();

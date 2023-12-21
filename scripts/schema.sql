@@ -120,6 +120,9 @@ CREATE TABLE cargo (
 
 CREATE TABLE cancelations (
   id SERIAL PRIMARY KEY,
-  booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
-  date TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  seat_id INTEGER NOT NULL,
+  user_id VARCHAR NOT NULL,
+  booking_id INTEGER NOT NULL,
+  date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (seat_id, booking_id, user_id) REFERENCES bookings(seat_id, id, user_id) ON DELETE CASCADE
 );
