@@ -56,10 +56,10 @@ def flights_controller(airline_id):
         cursor = db.cursor()
 
         cursor.execute(
-            'INSERT INTO flights (airline_id, origin_id, destination_id, departure_date, arrival_date, duration, flight_number) '
-            'VALUES (%s, %s, %s, %s, %s, %s, %s)'
+            'INSERT INTO flights (airline_id, origin_id, destination_id, departure_date, arrival_date, duration, flight_number, base_price) '
+            'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
             'RETURNING id',
-            (airline_id, body['origin_id'], body['destination_id'], body['departure_date'], body['arrival_date'], body['duration'], body['flight_number']))
+            (airline_id, body['origin_id'], body['destination_id'], body['departure_date'], body['arrival_date'], body['duration'], body['flight_number'], body['base_price']))
 
         flight_id = cursor.fetchone()
 
@@ -73,12 +73,13 @@ def flights_controller(airline_id):
                 (flight_id, seat['col'], seat['row'], seat['luxury_id']))
 
         db.commit()
+        cursor.close()
 
         return jsonify({'flight_id': flight_id[0]}), 201
 
 
-@flights.route('/<int:flight_id>', methods=['GET', 'DELETE'])
-def flight_controller(airline_id, flight_id):
+@flights.route('/<int:flight_number>', methods=['GET', 'DELETE'])
+def flight_controller(airline_id, flight_number):
     if request.method == 'GET':
         cursor = get_cursor()
         cursor.execute(
@@ -96,8 +97,8 @@ def flight_controller(airline_id, flight_id):
             'ON a1.id = origin_id '
             'INNER JOIN AIRPORTS a2 '
             'ON a2.id = destination_id '
-            'WHERE airline_id = %s AND f.id = %s',
-            (airline_id, flight_id))
+            'WHERE airline_id = %s AND f.flight_number = %s',
+            (airline_id, flight_number))
         raw = cursor.fetchone()
 
         parsed = {
@@ -116,8 +117,8 @@ def flight_controller(airline_id, flight_id):
     elif request.method == 'DELETE':
         cursor = get_cursor()
         cursor.execute(
-            'DELETE FROM flights WHERE id = %s AND airline_id = %s',
-            (flight_id, airline_id))
+            'DELETE FROM flights WHERE flight_number = %s AND airline_id = %s',
+            (flight_number, airline_id))
 
         if cursor.rowcount == 0:
             abort(404, 'Flight not found')

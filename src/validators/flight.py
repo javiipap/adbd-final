@@ -15,3 +15,4 @@ class FlightSchema(Schema):
     departure_date = fields.Int(required=True)
     arrival_date = fields.Int(required=True)
     seats = fields.List(fields.Nested(SeatSchema), required=True)
+    base_price = fields.Decimal(required=True)
