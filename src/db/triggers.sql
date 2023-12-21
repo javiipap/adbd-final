@@ -103,3 +103,41 @@ BEGIN
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION prevent_luggage_overload()
+RETURNS TRIGGER AS $$
+DECLARE
+  cargo_weight INTEGER := 0;
+  _max_cargo_load INTEGER := 0;
+BEGIN
+  cargo_weight := (SELECT COALESCE(SUM(weight), 0) FROM cargo WHERE seat_id = NEW.seat_id);
+  _max_cargo_load := (SELECT max_cargo_load FROM flights
+                      WHERE flight_number = (SELECT flight_number FROM seats WHERE id = NEW.seat_id)
+                      AND airline_id = (SELECT airline_id FROM seats WHERE id = NEW.seat_id));
+  IF (cargo_weight + NEW.weight) > _max_cargo_load THEN
+    RAISE EXCEPTION 'Cargo overload';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_luggage_overload
+BEFORE INSERT ON cargo
+FOR EACH ROW EXECUTE FUNCTION prevent_luggage_overload();
+
+CREATE OR REPLACE FUNCTION prevent_luggage_on_unbooked_seat()
+RETURNS TRIGGER AS $$
+DECLARE
+  booked BOOLEAN := FALSE;
+BEGIN
+  booked := (SELECT EXISTS(SELECT * FROM bookings WHERE seat_id = NEW.seat_id));
+  IF booked = FALSE THEN
+    RAISE EXCEPTION 'Cannot add luggage to unbooked seat';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_luggage_on_unbooked_seat
+BEFORE INSERT ON cargo
+FOR EACH ROW EXECUTE FUNCTION prevent_luggage_on_unbooked_seat();

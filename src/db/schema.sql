@@ -100,7 +100,7 @@ CREATE TABLE seats (
 CREATE TYPE payment_status AS ENUM ('pending', 'fulfilled', 'canceled');
 
 CREATE TABLE bookings (
-  id SERIAL UNIQUE,
+  id SERIAL,
   user_id VARCHAR NOT NULL REFERENCES users(dni) ON DELETE CASCADE,
   seat_id INTEGER NOT NULL REFERENCES seats(id) ON DELETE CASCADE,
   date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
