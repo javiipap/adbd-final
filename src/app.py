@@ -49,7 +49,7 @@ def handle_exception(e):
 def handle_psycopg2_exception(e):
     """Return JSON instead of HTML for psycopg2 errors."""
     if app.debug:
-        return e
+        raise e
 
     logging.exception(e)
 
@@ -64,7 +64,7 @@ def handle_psycopg2_exception(e):
 def handle_exception(e):
     """Return JSON instead of HTML for generic errors."""
     if app.debug:
-        return e
+        raise e
 
     logging.exception(e)
 
