@@ -19,14 +19,18 @@ SELECT b.id booking_id,
        f.departure_date departure_date,
        f.arrival_date arrival_date,
        s.price,
-       s.user_info
-FROM bookings b INNER JOIN seats s
+       s.user_info,
+       cl.id cancelation_id
+FROM bookings b
+LEFT JOIN cancelations cl
+ON cl.booking_id = b.id
+INNER JOIN seats s
 ON b.seat_id = s.id
 INNER JOIN flights f
 ON s.flight_number = f.flight_number AND s.airline_id = f.airline_id
 INNER JOIN cargo c
 ON c.seat_id = s.id
-GROUP BY b.id, f.id, s.id, s.col, s.row, s.id, b.date, f.departure_date, f.arrival_date, s.price, s.user_info"""
+GROUP BY b.id, f.id, s.id, s.col, s.row, s.id, b.date, f.departure_date, f.arrival_date, s.price, s.user_info, cl.id"""
 
 
 def parse_bookings(raw_bookings):
@@ -48,6 +52,7 @@ def parse_bookings(raw_bookings):
                 'seats': [],
                 'price_raw': prices['calculate_booking_price'],
                 'price': prices['calculate_discounted_booking_price'],
+                'canceled': booking['cancelation_id'] is None
             }
 
         parsed[booking['booking_id']]['seats'].append({
@@ -116,7 +121,7 @@ def bookings_controller():
             seat_id = cursor.fetchone()
 
             # Check if seat is already booked
-            cursor.execute('SELECT id FROM bookings WHERE seat_id = %s',
+            cursor.execute('SELECT b.id FROM bookings b LEFT JOIN cancelations c ON c.booking_id = b.id AND b.seat_id = %s WHERE c.booking_id IS NULL',
                            [seat_id])
             prev_booking = cursor.fetchone()
 
@@ -214,3 +219,12 @@ def booking(booking_id):
         cursor.execute('DELETE FROM bookings WHERE id = %s', [booking_id])
 
         return jsonify({"message": f"Booking {booking_id} deleted"})
+
+
+@bookings.route('/<int:booking_id>/cancel', methods=['POST'])
+def cancel_booking(booking_id):
+    cursor = get_cursor()
+    cursor.execute('INSERT INTO cancelations (booking_id) VALUES (%s)',
+                   [booking_id])
+
+    return jsonify({"message": f"Booking {booking_id} canceled"})
