@@ -26,10 +26,10 @@ RETURNS TRIGGER AS $$
 DECLARE 
 price DECIMAL(7, 2) := 0.0;
 BEGIN
-  price := (SELECT base_price FROM flights WHERE (NEW.flight_number = flight_number AND NEW.airline_id = airline_id));
-  price := price + (SELECT fee FROM seat_luxury_fees WHERE (NEW.luxury_type = luxury_type AND NEW.airline_id = airline_id));
+  price := (SELECT COALESCE(base_price, 0) FROM flights WHERE (flight_number = NEW.flight_number AND airline_id = NEW.airline_id));
+  price := price + (SELECT COALESCE((SELECT fee FROM seat_luxury_fees WHERE (luxury_type = NEW.luxury_type AND airline_id = NEW.airline_id)), 0));
   NEW.price = price;
-    RETURN NEW;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -43,7 +43,7 @@ DECLARE
 cargo_weight DECIMAL(7, 2) := 0.0;
 BEGIN
 	cargo_weight := (SELECT MIN(weight) FROM luggage_fees WHERE (weight >= NEW.weight AND NEW.airline_id = airline_id));
-	NEW.price := (SELECT fee FROM luggage_fees WHERE (weight = cargo_weight AND NEW.airline_id = airline_id));
+	NEW.price := (SELECT COALESCE((SELECT fee FROM luggage_fees WHERE (weight = cargo_weight AND NEW.airline_id = airline_id)), 0));
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
