@@ -23,7 +23,6 @@ def list_airlines():
         return jsonify(output)
     elif request.method == 'POST':
         user_data = request.json
-        cursor = get_cursor()
 
         try:
             AirlineSchema().load(user_data)

@@ -18,7 +18,6 @@ def list_bonification():
         return jsonify(output)
     elif request.method == 'POST':
         bonification_data = request.json
-        cursor = get_cursor()
 
         try:
             BonificationSchema().load(bonification_data)
