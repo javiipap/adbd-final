@@ -93,7 +93,7 @@ def bookings_controller():
     user_id = body.get('user_id')
     flights = body.get('flights')
 
-    booked = {flight.get('flight_id'): [] for flight in flights}
+    booked = {flight.get('flight_id'): {'seats': []} for flight in flights}
 
     cursor = db.cursor()
     for flight in flights:
@@ -121,7 +121,7 @@ def bookings_controller():
             seat_id = cursor.fetchone()
 
             # Check if seat is already booked
-            cursor.execute('SELECT b.id FROM bookings b LEFT JOIN cancelations c ON c.booking_id = b.id AND b.seat_id = %s WHERE c.booking_id IS NULL',
+            cursor.execute('SELECT b.id FROM bookings b LEFT JOIN cancelations c ON c.booking_id = b.id WHERE b.seat_id = %s AND c.booking_id IS NULL',
                            [seat_id])
             prev_booking = cursor.fetchone()
 
@@ -209,7 +209,9 @@ def booking(booking_id):
         cursor.execute(base_query.replace(
             'GROUP BY', 'WHERE b.id = %s GROUP BY '), [booking_id])
         raw = cursor.fetchall()
-        raw = raw if raw else []
+
+        if not raw:
+            abort(404, 'Booking not found')
 
         parsed = parse_bookings(raw)
 
