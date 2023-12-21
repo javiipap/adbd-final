@@ -44,7 +44,6 @@ def flights_controller(airline_id):
 
         return jsonify(parsed)
     elif request.method == 'POST':
-        cursor = get_cursor()
         body = request.get_json()
 
         try:
@@ -56,10 +55,10 @@ def flights_controller(airline_id):
         cursor = db.cursor()
 
         cursor.execute(
-            'INSERT INTO flights (airline_id, origin_id, destination_id, departure_date, arrival_date, duration, flight_number, base_price) '
-            'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+            'INSERT INTO flights (airline_id, origin_id, destination_id, departure_date, arrival_date, duration, flight_number, base_price, max_cargo_load) '
+            'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
             'RETURNING id',
-            (airline_id, body['origin_id'], body['destination_id'], body['departure_date'], body['arrival_date'], body['duration'], body['flight_number'], body['base_price']))
+            (airline_id, body['origin_id'], body['destination_id'], body['departure_date'], body['arrival_date'], body['duration'], body['flight_number'], body['base_price'], body['max_cargo_load']))
 
         flight_id = cursor.fetchone()
 
@@ -68,9 +67,9 @@ def flights_controller(airline_id):
 
         for seat in body['seats']:
             cursor.execute(
-                'INSERT INTO seats (flight_id, col, row, luxury_id) '
-                'VALUES (%s, %s, %s)',
-                (flight_id, seat['col'], seat['row'], seat['luxury_id']))
+                'INSERT INTO seats (flight_number, airline_id, col, row, luxury_type) '
+                'VALUES (%s, %s, %s, %s, %s)',
+                (body['flight_number'], airline_id, seat['col'], seat['row'], seat.get('luxury_type')))
 
         db.commit()
         cursor.close()
